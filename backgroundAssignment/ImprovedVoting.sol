@@ -48,7 +48,9 @@ contract Ballot {
 
     // Give `voter` the right to vote on this ballot.
     // May only be called by `chairperson`.
-    function giveRightToVote(address voter) external {
+
+    // changing method signature to take in an array
+    function giveRightToVote(address[] memory voter) public {
         // If the first argument of `require` evaluates
         // to `false`, execution terminates and all
         // changes to the state and to Ether balances
@@ -68,8 +70,12 @@ contract Ballot {
         //     !voters[voter].voted,
         //     "The voter already voted."
         // );
-        require(voters[voter].weight == 0);
-        voters[voter].weight = 1;
+        // iterate through each element in voter
+        for (uint i = 0; i < voter.length; i++ ) {
+            require(voters[voter[i]].weight == 0);
+            voters[voter[i]].weight = 1;
+        }
+        
     }
 
     /// Delegate your vote to the voter `to`.
