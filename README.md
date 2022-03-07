@@ -1,2 +1,2 @@
 # zku
-zku harmony class
+zku class
