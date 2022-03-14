@@ -3,6 +3,7 @@ pragma circom 2.0.0;
 include "../node_modules/circomlib/circuits/poseidon.circom";
 include "./tree.circom";
 
+// calculates the secret from the identity nullifier and identity trapdoor using a hash of the two
 template CalculateSecret() {
     signal input identity_nullifier;
     signal input identity_trapdoor;
@@ -15,6 +16,7 @@ template CalculateSecret() {
     out <== hasher.out;
 }
 
+// calculates the identity commitment from the secret calculated from CalculateSecret() using a hash
 template CalculateIdentityCommitment() {
     signal input secret_hash;
 
@@ -25,6 +27,7 @@ template CalculateIdentityCommitment() {
     out <== hasher.out;
 }
 
+// calculates the nullifier hash from a hash of the external nullifier and the identity nullfier
 template CalculateNullifierHash() {
     signal input external_nullifier;
     signal input identity_nullifier;
@@ -36,6 +39,8 @@ template CalculateNullifierHash() {
     hasher.inputs[1] <== identity_nullifier;
     out <== hasher.out;
 }
+// verifies the merkle root from the identity commitment, tree path indices, tree siblings
+// calculates nullifier hash from external nullifier and identity nullifier
 
 // n_levels must be < 32
 template Semaphore(n_levels) {
@@ -54,6 +59,7 @@ template Semaphore(n_levels) {
     signal output root;
     signal output nullifierHash;
 
+    // calculates the secret
     component secret = CalculateSecret();
     secret.identity_nullifier <== identity_nullifier;
     secret.identity_trapdoor <== identity_trapdoor;
@@ -61,13 +67,16 @@ template Semaphore(n_levels) {
     signal secret_hash;
     secret_hash <== secret.out;
 
+    // calculates the identity commitment
     component identity_commitment = CalculateIdentityCommitment();
     identity_commitment.secret_hash <== secret_hash;
 
+    // calculates the nullifier hash
     component calculateNullifierHash = CalculateNullifierHash();
     calculateNullifierHash.external_nullifier <== external_nullifier;
     calculateNullifierHash.identity_nullifier <== identity_nullifier;
 
+    // verifies identity commitment and tree paths
     var i;
     var j;
     component inclusionProof = QuinTreeInclusionProof(n_levels);
